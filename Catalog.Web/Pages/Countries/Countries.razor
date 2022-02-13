@@ -1,0 +1,69 @@
+﻿@page "/countries"
+@using Catalog.Web.Dtos
+@using Catalog.Web.Helpers
+@using Catalog.Infrastructure.Services
+@inject ICountryService CountryService
+@inject NavigationManager NavigationManager
+
+<h3>Countries</h3>
+<small>Add as many countries as you wish.</small>
+<div class="form-group">
+    <a class="btn btn-success" href="countries/add"><i class="oi oi-plus"></i> Create New</a>
+</div>
+@if (_countriesList is null)
+{
+    <p><em>Loading... !</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>ShortName</th>
+                <th>Code</th>
+                <th>IsSchengen</th>
+                <th>StartDate</th>
+                <th>FinishDate</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (_countriesList.Count == 0)
+            {
+                <text>No Records Found.</text>
+            }
+            @foreach (var country in _countriesList)
+            {
+            <tr>
+                <td>@country.Id</td>
+                <td>@country.Name</td>
+                <td>@country.ShortName</td>
+                <td>@country.Code</td>
+                <td>@country.IsSchengen</td>
+                <td>@country.StartDate</td>
+                <td>@country.FinishDate</td>
+                <td>
+                    <a class="nav-link" href="Edit/@country.Id">
+                        <span class="oi oi-pencil" aria-hidden="true">Edit</span>
+                    </a>
+                    <a class="nav-link" href="Delete/@country.Id">
+                        <span class="oi oi-trash" aria-hidden="true">Delete</span>
+                    </a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+
+@code {
+    public List<CountryDto> _countriesList;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _countriesList = await Task.Run(() => CountryService.Get().Select(c => c.AsDto()).ToList());
+    }
+
+}

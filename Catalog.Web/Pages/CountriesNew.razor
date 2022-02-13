@@ -1,0 +1,114 @@
+﻿@page "/countries-new"
+@using Catalog.Infrastructure.Services
+@using Catalog.Infrastructure.Entities
+@using Catalog.Web.Dtos
+@using Catalog.Web.Helpers
+@using AutoMapper
+@inject IMapper Mapper
+@inject ISnackbar SnackBar
+@inject ICountryService CountryService
+
+<MudCard Elevation="25">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">Add / Edit Countries</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudTextField @bind-Value="_countryDto.Name" Label="Name" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudTextField @bind-Value="_countryDto.ShortName" Label="ShortName" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudTextField @bind-Value="_countryDto.Code" Label="Code" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudText Typo="Typo.h6">IsSchengen Country</MudText>
+        <MudRadioGroup @bind-SelectedOption="_countryDto.IsSchengen">
+            <MudRadio Option="true" Color="Color.Primary" Dense="true">True</MudRadio>
+            <MudRadio Option="false" Color="Color.Secondary" Dense="false">False</MudRadio>
+        </MudRadioGroup>
+        <MudTextField @bind-Value="_countryDto.StartDate" Label="StartDate" Variant="Variant.Text" Margin="Margin.Normal" placeholder="dd/MM/yyyy"></MudTextField>
+        <MudTextField @bind-Value="_countryDto.FinishDate" Label="FinishDate" Variant="Variant.Text" Margin="Margin.Normal" placeholder="dd/MM/yyyy"></MudTextField>
+        <br />
+        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Save">Save Country</MudButton>
+    </MudCardContent>
+</MudCard>
+<br />
+<MudTable Elevation="25" Items="GetCountries()" Filter="new Func<CountryDto, bool>(Search)" @bind-customer="_countryDto">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Countries</MudText>
+        <MudToolBarSpacer />
+        <MudTextField @bind-Value="searchString" Placeholder="Search for Countries..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Id</MudTh>
+        <MudTh>Name</MudTh>
+        <MudTh>ShortName</MudTh>
+        <MudTh>Code</MudTh>
+        <MudTh>IsSchengen</MudTh>
+        <MudTh>StartDate</MudTh>
+        <MudTh>FinishDate</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Id">@context.Id</MudTd>
+        <MudTd DataLabel="Name">@context.Name</MudTd>
+        <MudTd DataLabel="ShortName">@context.ShortName</MudTd>
+        <MudTd DataLabel="Code">@context.Code</MudTd>
+        <MudTd DataLabel="Code">@context.IsSchengen</MudTd>
+        <MudTd DataLabel="Code">@context.StartDate</MudTd>
+        <MudTd DataLabel="Code">@context.FinishDate</MudTd>
+        <MudTd DataLabel="">
+            <MudFab @onclick="@(()=>Edit(@context.Id))" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small" />
+            <MudFab @onclick="@(()=>Delete(@context.Id))" Color="Color.Secondary" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small" />
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+
+@code {
+    private bool hover = false;
+    private string searchString = "";
+
+    private CountryDto _countryDto = new CountryDto();
+    private List<CountryDto> _countries = new List<CountryDto>();
+
+    protected override void OnInitialized()
+    {
+        GetCountries();
+    }
+
+    private List<CountryDto> GetCountries()
+    {
+        _countries = CountryService.Get()?.Select(c => c?.AsDto()).ToList();
+        return _countries;
+    }
+
+    private bool Search(CountryDto countryDto)
+    {
+        if (string.IsNullOrWhiteSpace(searchString)) return true;
+        if (countryDto.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase)
+            || countryDto.ShortName.Contains(searchString, StringComparison.OrdinalIgnoreCase)
+            || countryDto.Code.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private async Task Save()
+    {
+        var item = Mapper.Map<Country>(_countryDto);
+        CountryService.Save(item);
+        SnackBar.Add("Country Saved", Severity.Success);
+        GetCountries();
+    }
+
+    private void Edit(long id)
+    {
+        _countryDto = _countries.FirstOrDefault(c => c.Id == id);
+    }
+
+    private async Task Delete(long id)
+    {
+        CountryService.Delete(id);
+        SnackBar.Add("Country Deleted", Severity.Success);
+        GetCountries();
+    }
+}

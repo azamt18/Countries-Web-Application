@@ -1,0 +1,72 @@
+﻿@page "/countries/edit/{Id}"
+@using Catalog.Infrastructure.Entities
+@using Catalog.Infrastructure.Services
+@using Catalog.Web.Dtos
+@using Catalog.Web.Helpers
+@using AutoMapper
+@inject ICountryService CountryService
+@inject NavigationManager NavigationManager
+@inject IMapper Mapper
+
+<h3>Edit Country</h3>
+<hr />
+
+<form>
+    <div class="row">
+        <div class="col-md-8">
+            <div class="form-group">
+                <label for="Name" class="control-label">Name</label>
+                <input form="Name" class="form-control" @bind="@_countryDto.Name" />
+            </div>
+            <div class="form-group">
+                <label for="ShortName" class="control-label">ShortName</label>
+                <input form="ShortName" class="form-control" @bind="@_countryDto.ShortName" />
+            </div>
+            <div class="form-group">
+                <label for="Code" class="control-label">Name</label>
+                <input form="Code" class="form-control" @bind="@_countryDto.Code" />
+            </div>
+            <div class="form-group">
+                <label for="StartDate" class="control-label">StartDate</label>
+                <input form="StartDate" class="form-control" @bind="@_countryDto.StartDate" />
+            </div>
+            <div class="form-group">
+                <label for="FinishDate" class="control-label">FinishDate</label>
+                <input form="FinishDate" class="form-control" @bind="@_countryDto.FinishDate" />
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <input type="button" class="btn btn-primary" @onclick="@Update" value="Update" />
+                <input type="button" class="btn btn-primary" @onclick="@Cancel" value="Cancel" />
+            </div>
+        </div>
+    </div>
+</form>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    CountryDto _countryDto = new CountryDto();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _countryDto = await Task.Run(() => CountryService.GetById(Convert.ToInt64(Id)).AsDto());
+    }
+
+    protected async void Update()
+    {
+        CountryService.Update(Convert.ToInt64(Id), Mapper.Map<Country>(_countryDto));
+        NavigationManager.NavigateTo("Countries");
+    }
+
+    void Cancel()
+    {
+        NavigationManager.NavigateTo("Countries");
+    }
+
+}
